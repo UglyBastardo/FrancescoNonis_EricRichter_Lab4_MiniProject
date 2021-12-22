@@ -64,25 +64,25 @@ architecture behavior of MasterController is
 	type DMA_states_type		 			is (Idle, WaitFIFO, ReadRqAM, ReadData);	--This is the global state type	
 	
 	--Define state machines
-	signal DMA_state						:	DMA_states_type;
+	signal DMA_state					:  DMA_states_type;
 	
 	--Define variable signals and counters
-	signal current_memory_address		:	std_logic_vector(31 downto 0);
+	signal current_memory_address				:  std_logic_vector(31 downto 0);
 	signal row_counter					:  std_logic_vector(7 downto 0);
-	signal burst_iter						:  std_logic_vector(4 downto 0);
-	signal burst_counter					:	std_logic_vector(2 downto 0);
-	signal new_image						:  std_logic;
+	signal burst_iter					:  std_logic_vector(4 downto 0);
+	signal burst_counter					:  std_logic_vector(2 downto 0);
+	signal new_image					:  std_logic;
 
 begin
 	--Reset all signals
 	process(nReset)
 	begin
 		if nReset = '0' then
-			DMA_state			 		<= Idle;
-			current_memory_address 	<= mem_addr;
-			row_counter					<=	(others => '0');
+			--DMA_state			 		<= Idle;
+			current_memory_address 				<= mem_addr;
+			row_counter					<= (others => '0');
 			burst_iter 					<= (others => '0');
-			burst_counter				<= (others => '0');
+			burst_counter					<= (others => '0');
 			new_image					<= '1';
 		end if;
 	end process;
@@ -95,6 +95,7 @@ begin
 			--waiting for data from the avalon bus to actually reading that data to the FIFO
 			case DMA_state is
 				when Idle 			=>			--In Idle state, the DMA does nothing but wait for the start trigger from the LCD
+					img_read		<= '0';
 					if start_read = '1' then
 						DMA_state <= WaitFIFO;
 					end if;
@@ -138,7 +139,7 @@ begin
 								if row_counter = nb_rows_of_pixels-1 then
 									DMA_state 		<= Idle;
 									new_image 		<= '1';
-									img_read			<= '1';
+									img_read		<= '1';
 								end if;	--img finished
 								
 							end if; -- row finished
