@@ -18,7 +18,7 @@ port(
 	AM_wait			: 	in std_logic;
 	readdatavalid	: 	in std_logic;	
 	read_data 		: 	in std_logic_vector(31 downto 0);
-	brustcount		: 	out std_logic_vector(4 downto 0);
+	burstcount		: 	out std_logic_vector(4 downto 0);
 
 
 	-- Internal interface (LCD block).
@@ -53,10 +53,15 @@ end MasterController;
 architecture behavior of MasterController is
 
 	--define constants for the DMA
-	constant burstcount_constant:	std_logic_vector(4 downto 0) := "10100"; --20
+	constant burstcount_constant:	std_logic_vector(4 downto 0) := "10011"; --0 to 19 is 20 iterations
 	constant address_increment	 : std_logic_vector(6 downto 0) := "1010000"; --80
-	constant nb_rows_of_pixels  :	std_logic_vector(7 downto 0) := "11110000"; --240
-	constant nb_burst_per_row   :	std_logic_vector(2 downto 0) := "111"; --7
+
+	constant nb_rows_of_pixels  :	std_logic_vector(7 downto 0) := "11101111"; --0 to 239 is 240 iterations
+--	constant nb_rows_of_pixels  :	std_logic_vector(7 downto 0) := "00000001"; --0 to 1 rows for test
+
+	constant nb_burst_per_row   :	std_logic_vector(2 downto 0) := "111"; --0 to 7	is 8 iterations
+--	constant nb_burst_per_row   :	std_logic_vector(2 downto 0) := "001"; --0 to 1 bursts per row ... for test
+
 
 
 
@@ -64,63 +69,81 @@ architecture behavior of MasterController is
 	type DMA_states_type		 			is (Idle, WaitFIFO, ReadRqAM, ReadData);	--This is the global state type	
 	
 	--Define state machines
-	signal DMA_state					:  DMA_states_type;
+	signal DMA_state						:	DMA_states_type;
 	
 	--Define variable signals and counters
-	signal current_memory_address				:  std_logic_vector(31 downto 0);
+	signal current_memory_address		:	std_logic_vector(31 downto 0);
 	signal row_counter					:  std_logic_vector(7 downto 0);
-	signal burst_iter					:  std_logic_vector(4 downto 0);
-	signal burst_counter					:  std_logic_vector(2 downto 0);
-	signal new_image					:  std_logic;
+	signal burst_iter						:  std_logic_vector(4 downto 0);
+	signal burst_counter					:	std_logic_vector(2 downto 0);
+	signal new_image						:  std_logic;
+	signal AM_rq_ready					:  std_logic;
 
 begin
-	--Reset all signals
-	process(nReset)
-	begin
-		if nReset = '0' then
-			--DMA_state			 		<= Idle;
-			current_memory_address 				<= mem_addr;
-			row_counter					<= (others => '0');
-			burst_iter 					<= (others => '0');
-			burst_counter					<= (others => '0');
-			new_image					<= '1';
-		end if;
-	end process;
 
 	--Main Process
-	process(clk)
-	begin
-		if rising_edge(clk) then
+	process(clk, nReset)
+	begin		
+		if nReset = '0' then			
+			--reset signals
+			--DMA_state			 		<= Idle;
+			row_counter					<=	(others => '0');
+			burst_iter 					<= (others => '0');
+			burst_counter				<= (others => '0');
+			new_image					<= '1';
+			current_memory_address 	<= (others => '0');
+			AM_rq_ready					<= '0';
+
+			
+			--reset outputs
+			AM_Address 					<=	(others => '0');
+			AM_read						<= '0';
+			burstcount					<= (others => '0');
+			img_read						<= '0';
+			write_FIFO					<= '0';
+			write_data_FIFO			<= (others => '0');
+	 
+		elsif rising_edge(clk) then
 			--State machine goes from Idle, to Waiting for the FIFO to the ready for data, to requesting and 
 			--waiting for data from the avalon bus to actually reading that data to the FIFO
 			case DMA_state is
 				when Idle 			=>			--In Idle state, the DMA does nothing but wait for the start trigger from the LCD
-					img_read		<= '0';
-					if start_read = '1' then
-						DMA_state <= WaitFIFO;
+					img_read			<= '0'; --reinit img_read for new reading of image
+					if start_read = '1' then --if the start_read command was set, start reading a picture from memory and do not stop until the picture is read or a reset is issued
+						DMA_state 		<= WaitFIFO;
 					end if;
 					
 				when WaitFIFO 		=>			--In this state, the DMA waits for the FIFO to be ready to receive data
+					--reset write_FIFO so as to not write when unexpected
+					write_FIFO 			<= readdatavalid;
+					
+					--test if enough space in FIFO
 					if (FIFO_full = '0') and (FIFO_almost_full = '0') then
-						DMA_state 					<= ReadRqAM;
 						if new_image = '1' then
 							current_memory_address 	<= mem_addr;
+							AM_Address 					<= mem_addr;
 							new_image 					<= '0';
-							row_counter 				<= "00000000";
+							row_counter 				<= (others => '0');
+							burst_counter				<= (others => '0');
 						else 
 							current_memory_address 	<= current_memory_address + address_increment;
+							AM_Address					<= current_memory_address + address_increment;
 							burst_counter				<= burst_counter + 1;
 						end if;
+						
+						--go to next state
+						DMA_state 						<= ReadRqAM;
+						AM_read 							<= '1';
+						burstcount  					<= burstcount_constant;
 					end if;
 				
 				when ReadRqAM		=>			--In this state, the DMA waits for the AM bus to be ready to send Data
-					AM_read 		<= '1';
-					AM_Address 	<= current_memory_address;
-					
-					if AM_wait = '0' then
-						DMA_state 	<= ReadData;
-						burst_iter  <= "00000";
-						AM_read 		<= '0';
+						
+					if AM_wait = '0' then --Avalon bus is ready to send data
+						DMA_state 						<= ReadData;
+						burst_iter  					<= (others => '0');
+						AM_read 							<= '0';
+						AM_rq_ready 					<= '0';
 					end if; --AM_wait
 						
 					
@@ -128,24 +151,37 @@ begin
 					write_FIFO 			<= readdatavalid;
 					write_data_FIFO 	<= read_data;
 					
+					--read the data
 					if readdatavalid = '1' then
 					
-						if burst_iter = burstcount_constant-1 then
-						
+						--when a burst is finished
+						if burst_iter = burstcount_constant then
+	
+
+							-- when a row is finished
 							if burst_counter = nb_burst_per_row then
-							
-								row_counter <= row_counter + 1;
 								
-								if row_counter = nb_rows_of_pixels-1 then
+								
+								--when the whole image is read
+								if row_counter = nb_rows_of_pixels then
 									DMA_state 		<= Idle;
 									new_image 		<= '1';
-									img_read		<= '1';
+									img_read			<= '1';
+								else --just go back to waiting on the FIFO to be ready
+									DMA_state	 	<= WaitFIFO;
 								end if;	--img finished
 								
+								--reset burst counter
+								burst_counter 	<= (others => '0');
+							
+								--increase row counter
+								row_counter 	<= row_counter + 1;
+								
+							else --just go back to the FIFO to be ready
+								DMA_state	 	<= WaitFIFO;
+
 							end if; -- row finished
-							
-							DMA_state	 	<= WaitFIFO;
-							
+														
 						end if; --burst finished
 						burst_iter		<= burst_iter + 1;
 						
