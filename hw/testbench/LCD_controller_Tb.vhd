@@ -137,6 +137,7 @@ begin
 		procedure memory_simu(constant data_mem : in std_logic_vector(31 downto 0)) is
 		
 		begin
+		
 			wait until rising_edge(CLK);
 			READDATAVALID 	<= '0';
 			READ_DATA		<= data_mem;
@@ -150,7 +151,33 @@ begin
 		
 		end procedure memory_simu;
 		
+		--simulate a whole burst memory read
+		procedure single_burst_simu is
 		
+		begin
+			
+			
+			memory_simu(x"00010002"); --1
+			memory_simu(x"00030004"); --2
+			memory_simu(x"00050006"); --3
+			memory_simu(x"00070008"); --4
+			memory_simu(x"0009000A"); --5
+			memory_simu(x"000B000C"); --6
+			memory_simu(x"000D000E"); --7
+			memory_simu(x"000F0010"); --8
+			memory_simu(x"00200030"); --9
+			memory_simu(x"00400050"); --10
+			memory_simu(x"00600070"); --11
+			memory_simu(x"00800090"); --12
+			memory_simu(x"00A000B0"); --13
+			memory_simu(x"00C000D0"); --14
+			memory_simu(x"00E000F0"); --15
+			memory_simu(x"01000200"); --16 
+			memory_simu(x"03000400"); --17
+			memory_simu(x"05000600"); --18
+			memory_simu(x"07000800"); --19
+			memory_simu(x"09000A00"); --20 
+		end procedure single_burst_simu;
 		
 	begin
 	--assigning all signals
@@ -176,27 +203,14 @@ begin
 	--test sending an image to LCD_controller
 	test_write_dut("01", x"1000FFFF");	--setup adress
 	test_write_dut("00", x"0000002C");
-	wait until AM_READ = '1';
-	memory_simu(x"00000001"); --1
-	memory_simu(x"00000002"); --2
-	memory_simu(x"00000003"); --3
-	memory_simu(x"00000004"); --4
-	memory_simu(x"00000005"); --5
-	memory_simu(x"00000006"); --6
-	memory_simu(x"00000007"); --7
-	memory_simu(x"00000008"); --8
-	memory_simu(x"00000009"); --9
-	memory_simu(x"0000000A"); --10
-	memory_simu(x"0000000B"); --11
-	memory_simu(x"0000000C"); --12
-	memory_simu(x"0000000D"); --13
-	memory_simu(x"0000000E"); --14
-	memory_simu(x"0000000F"); --15
-	memory_simu(x"00000010"); --16 
-	memory_simu(x"00000020"); --17
-	memory_simu(x"00000030"); --18
-	memory_simu(x"00000040"); --19
-	memory_simu(x"00000050"); --20 
+	
+	for j in 1 to 1920 loop
+		wait until AM_READ = '1';
+		single_burst_simu;
+	end loop;
+	
+	--wait until AM_READ = '1';
+	--single_burst_simu;
 	
 	
 	wait until AS_WAIT = '0';
