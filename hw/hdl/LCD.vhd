@@ -66,7 +66,7 @@ architecture behavior of LCD is
 	--Define useful signals to momentarily store data and a timing counter
 	signal current_data						:	std_logic_vector(31 downto 0);
 	signal wait_twrl						: 	std_logic_vector(1 downto 0); --4 cycles for twrl (write control pulse L duration)
-	
+	signal ready							:   std_logic; --a timing signal
 begin
 	
 	-- state machine
@@ -76,12 +76,13 @@ begin
 			lcd_state			 	<= Idle;
 			current_data			<= (others => '0');
 			wait_twrl 				<= (others => '0');
+			ready 					<= '0';
 
 			--reset outputs
-			CSX					<= '0';
+			CSX					<= '1';
 			RESX				<= '0';
-			DCX 				<= '0';
-			WRX 				<= '0';
+			DCX 				<= '1';
+			WRX 				<= '1';
 			RDX 				<= '0';
 			data				<= (others => '0');
 			wait_LCD			<= '0';
@@ -95,12 +96,19 @@ begin
 			
 				--In this state, the LCD waits for a new command
 				when Idle 		=>
-				
+					CSX				<= '0';			--stop ignoring wrx and data lines
+					RESX			<= '1';			--stop resetting the ILI9341
+
+					if ready = '0' then
+					wait_LCD 		<= '0';			--enable new read from avalon bus
+					ready 			<= '1';
+
 					--if a write is pending, start the state machine
-					if write_RQ = '1' then
+					elsif write_RQ = '1' then
 						current_data		<= cmd_data;  		--read the pending data
 						wait_LCD			<= '1';		  		--disable new read from avalon bus
 						lcd_state			<= InterpretData;	--Go to interpretation state
+						ready 				<= '0';
 					end if;
 				
 			
@@ -111,10 +119,10 @@ begin
 					wait_twrl 	<= "11";		--set up the timer for write low's 4 cycles
 
 					if current_data(16) = '0' then 	--configure cmd transmission
-						DCX			<= '0';			--send command
+						DCX			<= '0';			--send command adress
 						data		<= x"0000" + current_data(7 downto 0);
 					else 
-						DCX			<= '1';			--send Data
+						DCX			<= '1';			--send command Data
 						data		<= cmd_data(15 downto 0);
 					end if;
 
@@ -124,9 +132,7 @@ begin
 				--Also, if the command is to send pixels, then this state sets the machine to that state (FIFO then back etc...)
 				when SendData 		=>
 					if wait_twrl = "00" then
-						WRX				<= '1';
-						wait_LCD 		<= '0';			--enable new read from avalon bus
-						
+						WRX				<= '1';						
 						--if the cmd is to write pixels
 						if current_data = write_mem_cont_cmd then
 							start_read	<= '1';					--enable DMA read from avalon memory
