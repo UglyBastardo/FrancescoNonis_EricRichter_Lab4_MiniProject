@@ -152,7 +152,8 @@ begin
 					
 				when ReadData		=>			--In this state, DMA write data to the FIFO every time readdatavalid is high
 					write_FIFO 			<= readdatavalid;
-					write_data_FIFO 	<= read_data;
+					write_data_FIFO(31 downto 16) 	<= read_data(15 downto 0);
+					write_data_FIFO(15 downto 0) 	<= read_data(31 downto 16);
 					
 					--read the data
 					if readdatavalid = '1' then

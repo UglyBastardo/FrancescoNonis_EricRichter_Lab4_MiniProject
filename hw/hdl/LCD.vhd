@@ -67,6 +67,9 @@ architecture behavior of LCD is
 	signal current_data						:	std_logic_vector(31 downto 0);
 	signal wait_twrl						: 	std_logic_vector(1 downto 0); --4 cycles for twrl (write control pulse L duration)
 	signal ready							:   std_logic; --a timing signal
+	
+	--counter to wait one cycle after having set the read request to the FIFO
+	signal wait_read_cnt : std_logic;
 begin
 	
 	-- state machine
@@ -88,7 +91,7 @@ begin
 			wait_LCD			<= '0';
 			start_read			<= '0';
 			read_FIFO			<= '0';
-
+			wait_read_cnt		<= '0';
 
 
 		elsif rising_edge(clk) then
@@ -148,23 +151,37 @@ begin
 
 				--This state reads from the FIFO to fetch the data needed
 				when FetchPixelFromFIFO	=>			
-
-					if wait_twrl = "11" then	--if we just set the wait_twrl signal
-						data			<= x"0000" + read_data_FIFO; --read from FIFO
-						read_FIFO 		<= '0';			   --reset read_FIFO to avoid missing data
-						lcd_state   	<= SendData;	   --send Data from FIFO
-
-						--configure sending
-						CSX				<= '0';
-						DCX				<= '1';
-						WRX 			<= '0';			--set up write trigger
+					
+					
+					
+						if wait_twrl = "11" then	--if we just set the wait_twrl signal
+							
+							
+							if wait_read_cnt = '0' then
+								--configure sending
+								CSX				<= '0';
+								DCX				<= '1';
+								WRX 			<= '0';			--set up write trigger
+								read_FIFO 		<= '0';			   --reset read_FIFO to avoid missing data
+								wait_read_cnt	<= '1';
 						
-					--wait for data to be available from the FIFO
-					elsif FIFO_empty = '0' then
-						read_FIFO 		<= '1';			--send read signal
-						wait_twrl 		<= "11";		--set up the timer for write low's 4 cycles
+							else 
+							
+								data			<= x"0000" + read_data_FIFO; --read from FIFO
+								wait_read_cnt	<= '0';
+								lcd_state   	<= SendData;	   --send Data from FIFO
+							
+							end if;
 
-					end if;
+							
+							
+						--wait for data to be available from the FIFO
+						elsif FIFO_empty = '0' then
+							read_FIFO 		<= '1';			--send read signal
+							wait_twrl 		<= "11";		--set up the timer for write low's 4 cycles
+
+						end if;
+					
 
 			end case; --LCD_state
 		end if; --rising_edge(clk)
