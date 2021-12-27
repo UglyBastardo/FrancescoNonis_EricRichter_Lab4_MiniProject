@@ -108,7 +108,7 @@ begin
 				wait until rising_edge(CLK);
 				WRITE_RQ <= '1';
 				CMD_DATA <= command;
-				wait until rising_edge(WAIT_LCD);
+				wait until rising_edge(CLK);
 				WRITE_RQ <= '0';
 			end procedure simulate_send_cmd_or_data;
 
@@ -119,7 +119,7 @@ begin
 				wait until rising_edge(CLK);
 				WRITE_RQ <= '1';
 				CMD_DATA <= img_cmd;
-				wait until rising_edge(clk);
+				wait until rising_edge(CLK);
 				WRITE_RQ <= '0';
 			end procedure simulate_send_img_cmd;
 
@@ -146,6 +146,7 @@ begin
 		wait until rising_edge(CLK);
 		simulate_send_cmd_or_data(cmdones);
 
+		wait until WAIT_LCD = '0';
 		simulate_send_cmd_or_data(cmd1pair);
 
 		wait until WAIT_LCD = '0';

@@ -18,18 +18,15 @@ entity Avalon_slave is
 			AS_ReadData		: out std_logic_vector(31 downto 0);
 			
 			--Interface with Avalon Master
-			Memory_Address : out std_logic_vector(31 downto 0);
-			Img_sent			: in std_logic;
-			AM_nReset		: out std_logic;
+			Memory_Address  : out std_logic_vector(31 downto 0);
+			Img_sent		: in std_logic;
+			--AM_nReset		: out std_logic;
 			
 			--Interface with the LCD control module
 			LCD_write		: out std_logic;
 			Cmd_Data		: out std_logic_vector(31 downto 0);
-			LCD_wait		: in std_logic;
-			LCD_nReset		: out std_logic
-			
-		
-			
+			LCD_wait		: in std_logic
+			--LCD_nReset		: out std_logic		
 	);
 
 end Avalon_slave;
@@ -66,18 +63,18 @@ begin
 	
 	begin 
 		
-		if nReset = '1' then
+		--if nReset = '1' then
 		
-			LCD_nReset 	<= '1';
-			AM_nReset	<= '1';
+			--LCD_nReset 	<= '1';
+			--AM_nReset	<= '1';
 			
-		end if;
+		--end if;
 		--reset procedure
 		if nReset = '0' then
 			
 			--transfer the reset to the other modules
-			LCD_nReset		<= '0';
-			AM_nReset		<= '0';
+			--LCD_nReset		<= '0';
+			--AM_nReset		<= '0';
 			
 			--setting the signals to safe values
 			Memory_Address <= (others => '0');

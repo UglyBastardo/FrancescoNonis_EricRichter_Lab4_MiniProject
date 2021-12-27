@@ -55,7 +55,7 @@ end LCD;
 architecture behavior of LCD is
 
 	-- define constants
-	constant write_mem_cont_cmd:	std_logic_vector(15 downto 0) := x"003C";
+	constant write_mem_cont_cmd:	std_logic_vector(15 downto 0) := x"002C";
 
 	-- define state machine types
 	type lcd_states_type		 		is (Idle, InterpretData, SendData, FetchPixelFromFIFO);	--This is the global state type
