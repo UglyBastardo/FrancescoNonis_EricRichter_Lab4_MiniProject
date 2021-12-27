@@ -197,9 +197,15 @@ begin
 	wait until rising_edge(CLK);
 	
 	
+	
 	--start by doing a reset
 	async_reset;
 	
+	wait until rising_edge(CLK);
+	--test access to RESX
+	test_write_dut("11", x"00000000");
+	wait until rising_edge(CLK);
+	test_write_dut("11", x"00000001");
 	--test a write
 	test_write_dut("00", x"00010FFF");
 	wait until AS_WAIT = '0';

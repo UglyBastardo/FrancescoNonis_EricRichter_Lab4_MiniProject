@@ -25,8 +25,10 @@ entity Avalon_slave is
 			--Interface with the LCD control module
 			LCD_write		: out std_logic;
 			Cmd_Data		: out std_logic_vector(31 downto 0);
-			LCD_wait		: in std_logic
-			--LCD_nReset		: out std_logic		
+			LCD_wait		: in std_logic;
+			
+			--RESX pin 
+			RESX			: out std_logic
 	);
 
 end Avalon_slave;
@@ -40,6 +42,7 @@ architecture AS of Avalon_slave is
 	signal Command_data_reg		: std_logic_vector(31 downto 0);	--address 00
 	signal Memory_address_reg	: std_logic_vector(31 downto 0);	--address 01
 	signal Img_read_reg			: std_logic_vector(31 downto 0);	--address 10
+	signal RESX_reg				: std_logic_vector(31 downto 0);	--address 11
 	
 	--type declaration for state machine handling
 	type  AS_state is (Idle, Write_LCD_control);	--state machine to write to the LCD control module
@@ -63,13 +66,7 @@ begin
 	
 	begin 
 		
-		--if nReset = '1' then
 		
-			--LCD_nReset 	<= '1';
-			--AM_nReset	<= '1';
-			
-		--end if;
-		--reset procedure
 		if nReset = '0' then
 			
 			--transfer the reset to the other modules
@@ -79,6 +76,8 @@ begin
 			--setting the signals to safe values
 			Memory_Address <= (others => '0');
 			Img_read_reg   <= (others => '0');
+			RESX_reg	   <= x"00000001";
+			RESX		<= '1';
 			
 		
 		
@@ -96,12 +95,16 @@ begin
 								 Memory_address_reg <= AS_Writedata;
 								 
 					when "10" => Img_read_reg <= AS_Writedata;
+					when "11" => RESX_reg	  <= AS_Writedata;
 					when others => null;
 				
 				end case;
-			
+				
+				
+				
 			end if;
-			
+		--update the RESX pin based on it's register value
+		RESX <= RESX_reg(0);
 			--Interface with the DMA
 			
 			if Img_sent = '1' then
@@ -124,6 +127,7 @@ begin
 		if nReset = '0' then
 			
 			AS_ReadData <= (others => '0');
+			
 			
 		
 		elsif rising_edge(clk) then

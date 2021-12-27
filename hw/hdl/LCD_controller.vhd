@@ -99,7 +99,6 @@ begin
 		
 		--interface with the lEDS signals
 		CSX		=>	CSX,
-		RESX	=>	RESX,
 		DCX 	=>	DCX,	
 		WRX 	=>	WRX, 	
 		RDX 	=>	RDX, 	
@@ -114,6 +113,7 @@ begin
 		-- Internal interface (LCD block).
 		start_read	=> start_read,
 		img_read	=> img_read,
+		
 		-- Internal interface (FIFO) 
 		read_FIFO		=> read_FIFO,
 		read_data_FIFO	=> read_data_FIFO, 
@@ -142,7 +142,9 @@ begin
 			--Interface with the LCD control module
 			LCD_write		=> write_RQ,
 			Cmd_Data 		=> cmd_data,
-			LCD_wait  		=> wait_LCD);
+			LCD_wait  		=> wait_LCD,
+			
+			RESX	=>	RESX);
 			
 	
 	FIFO2: entity work.FIFO2(SYN) port map(

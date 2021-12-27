@@ -14,7 +14,6 @@ port(
 	
 	-- External interface (ILI9341).
 	CSX				: 	out std_logic;
-	RESX			: 	out std_logic;
 	DCX 			: 	out std_logic;
 	WRX 			: 	out std_logic;
 	RDX 			: 	out std_logic;
@@ -83,7 +82,6 @@ begin
 
 			--reset outputs
 			CSX					<= '1';
-			RESX				<= '0';
 			DCX 				<= '1';
 			WRX 				<= '1';
 			RDX 				<= '0';
@@ -100,7 +98,6 @@ begin
 				when Idle 		=>
 					done 			<= '1';
 					CSX				<= '0';			--stop ignoring wrx and data lines
-					RESX			<= '1';			--stop resetting the ILI9341
 
 					if ready = '0' then
 					wait_LCD 		<= '0';			--enable new read from avalon bus
