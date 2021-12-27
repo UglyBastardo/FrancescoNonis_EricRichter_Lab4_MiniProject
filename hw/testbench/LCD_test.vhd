@@ -33,6 +33,7 @@ architecture test of tb_LCD is
 	
 	-- Internal interface (LCD block).
 	signal START_READ	: 	std_logic;
+	signal IMG_READ     :   std_logic;
 	
 	-- Internal interface (FIFO) 
 	signal READ_FIFO	:	std_logic;
@@ -59,7 +60,8 @@ begin
 			START_READ		=> start_read,
 			read_FIFO		=> READ_FIFO,
 			READ_DATA_FIFO	=> read_data_FIFO,
-			FIFO_EMPTY		=> FIFO_empty);
+			FIFO_empty		=> FIFO_EMPTY,
+			img_read		=> IMG_READ);
 			
 	--synchronus clock signal generation 
 	clk_generation: process

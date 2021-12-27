@@ -26,8 +26,9 @@ port(
 	wait_LCD		: 	out std_logic;
 
 	
-	-- Internal interface (LCD block).
+	-- Internal interface (DMA block).
 	start_read		: 	out std_logic;
+	img_read		:   in std_logic;
 	
 	-- Internal interface (FIFO) 
 	read_FIFO		:	out std_logic;
@@ -67,19 +68,18 @@ architecture behavior of LCD is
 	signal current_data						:	std_logic_vector(31 downto 0);
 	signal wait_twrl						: 	std_logic_vector(1 downto 0); --4 cycles for twrl (write control pulse L duration)
 	signal ready							:   std_logic; --a timing signal
+	signal done								:   std_logic; --a signal to tell the LCD_controller that a total image has been read.
 	
-	--counter to wait one cycle after having set the read request to the FIFO
-	signal wait_read_cnt : std_logic;
 begin
 	
 	-- state machine
 	process(clk, nReset)
 	begin
 		if nReset = '0' then
-			lcd_state			 	<= Idle;
-			current_data			<= (others => '0');
-			wait_twrl 				<= (others => '0');
-			ready 					<= '0';
+			lcd_state			<= Idle;
+			current_data		<= (others => '0');
+			wait_twrl 			<= (others => '0');
+			ready 				<= '0';
 
 			--reset outputs
 			CSX					<= '1';
@@ -91,7 +91,6 @@ begin
 			wait_LCD			<= '0';
 			start_read			<= '0';
 			read_FIFO			<= '0';
-			wait_read_cnt		<= '0';
 
 
 		elsif rising_edge(clk) then
@@ -99,6 +98,7 @@ begin
 			
 				--In this state, the LCD waits for a new command
 				when Idle 		=>
+					done 			<= '1';
 					CSX				<= '0';			--stop ignoring wrx and data lines
 					RESX			<= '1';			--stop resetting the ILI9341
 
@@ -145,45 +145,52 @@ begin
 						end if;
 													
 					else 
-						wait_twrl <=wait_twrl-1; 		 --decrement counter
+						wait_twrl <= wait_twrl-1; 		 --decrement counter
 
 					end if;
 
 				--This state reads from the FIFO to fetch the data needed
-				when FetchPixelFromFIFO	=>			
+				when FetchPixelFromFIFO	=>								
 					
-					
-					
-						if wait_twrl = "11" then	--if we just set the wait_twrl signal
-							
-							
-							if wait_read_cnt = '0' then
-								--configure sending
-								CSX				<= '0';
-								DCX				<= '1';
-								WRX 			<= '0';			--set up write trigger
-								read_FIFO 		<= '0';			   --reset read_FIFO to avoid missing data
-								wait_read_cnt	<= '1';
+					if wait_twrl = "11" then	--if we just set the wait_twrl signal
+						--configure sending
+						CSX				<= '0';
+						DCX				<= '1';
+						WRX 			<= '0';			--set up write trigger
+						read_FIFO 		<= '0';			   --reset read_FIFO to avoid missing data
+						wait_twrl 		<= "10";
+
+					elsif wait_twrl = "10" then
+
+						data			<= x"0000" + read_data_FIFO; --read from FIFO
+						lcd_state   	<= SendData;	   --send Data from FIFO
 						
-							else 
-							
-								data			<= x"0000" + read_data_FIFO; --read from FIFO
-								wait_read_cnt	<= '0';
-								lcd_state   	<= SendData;	   --send Data from FIFO
-							
-							end if;
+					--wait for data to be available from the FIFO
+					elsif FIFO_empty = '0' then
 
-							
-							
-						--wait for data to be available from the FIFO
-						elsif FIFO_empty = '0' then
-							read_FIFO 		<= '1';			--send read signal
-							wait_twrl 		<= "11";		--set up the timer for write low's 4 cycles
+						read_FIFO 		<= '1';			--send read signal
+						wait_twrl 		<= "11";		--set up the timer for write low's 4 cycles
+					
+					elsif done = '1' then
+						lcd_state 		<= Idle;
 
-						end if;
+					end if;
 					
 
 			end case; --LCD_state
 		end if; --rising_edge(clk)
 	end process;--DMA_state_machine
+
+
+	--check if a full img is over
+	process(clk)
+	begin
+		if rising_edge(clk) then
+			if img_read = '1' then
+				done <= '1';
+			end if;
+		end if;
+	end process;
+
+
 end behavior;
