@@ -54,7 +54,7 @@ end MasterController;
 architecture behavior of MasterController is
 
 	--define constants for the DMA
-	constant burstcount_constant:	std_logic_vector(4 downto 0) := "10011"; --0 to 19 is 20 iterations
+	constant burstcount_constant :	std_logic_vector(4 downto 0) := "10011"; --0 to 19 is 20 iterations
 	constant address_increment	 : std_logic_vector(6 downto 0) := "1010000"; --80
 
 	constant nb_rows_of_pixels  :	std_logic_vector(7 downto 0) := "11101111"; --0 to 239 is 240 iterations
@@ -75,9 +75,9 @@ architecture behavior of MasterController is
 	--Define variable signals and counters
 	signal current_memory_address		:	std_logic_vector(31 downto 0);
 	signal row_counter					:  std_logic_vector(7 downto 0);
-	signal burst_iter						:  std_logic_vector(4 downto 0);
-	signal burst_counter					:	std_logic_vector(2 downto 0);
-	signal new_image						:  std_logic;
+	signal burst_iter					:  std_logic_vector(4 downto 0);
+	signal burst_counter				:	std_logic_vector(2 downto 0);
+	signal new_image					:  std_logic;
 	signal AM_rq_ready					:  std_logic;
 
 begin
@@ -109,7 +109,7 @@ begin
 			--waiting for data from the avalon bus to actually reading that data to the FIFO
 			case DMA_state is
 				when Idle 			=>			--In Idle state, the DMA does nothing but wait for the start trigger from the LCD
-					img_read			<= '0'; --reinit img_read for new reading of image
+					img_read		<= '0'; --reinit img_read for new reading of image
 					if start_read = '1' then --if the start_read command was set, start reading a picture from memory and do not stop until the picture is read or a reset is issued
 						DMA_state 		<= WaitFIFO;
 					end if;
@@ -170,7 +170,7 @@ begin
 								if row_counter = nb_rows_of_pixels then
 									DMA_state 		<= Idle;
 									new_image 		<= '1';
-									img_read			<= '1';
+									img_read		<= '1';
 								else --just go back to waiting on the FIFO to be ready
 									DMA_state	 	<= WaitFIFO;
 								end if;	--img finished

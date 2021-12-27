@@ -78,6 +78,7 @@ begin
 			
 			--setting the signals to safe values
 			Memory_Address <= (others => '0');
+			Img_read_reg   <= (others => '0');
 			
 		
 		

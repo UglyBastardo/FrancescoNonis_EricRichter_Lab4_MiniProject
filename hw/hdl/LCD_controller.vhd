@@ -113,7 +113,7 @@ begin
 		
 		-- Internal interface (LCD block).
 		start_read	=> start_read,
-		
+		img_read	=> img_read,
 		-- Internal interface (FIFO) 
 		read_FIFO		=> read_FIFO,
 		read_data_FIFO	=> read_data_FIFO, 

@@ -42,6 +42,9 @@ architecture test of tb_LCD_controller is
 	signal RDX 				: std_logic;
 	signal data				: std_logic_vector(15 downto 0);
 	
+	--count number of burst done
+	signal NBR_BURST		: integer;
+	
 begin
 	
 	dut: entity work.LCD_controller port map (
@@ -189,6 +192,7 @@ begin
 	AM_WAIT			<= '0';
 	READDATAVALID	<= '0';
 	READ_DATA		<= x"00000000";
+	NBR_BURST		<= 0;
 	
 	wait until rising_edge(CLK);
 	
@@ -205,6 +209,7 @@ begin
 	test_write_dut("00", x"0000002C");
 	
 	for j in 1 to 1920 loop
+		NBR_BURST <= NBR_BURST + 1;
 		wait until AM_READ = '1';
 		single_burst_simu;
 	end loop;
