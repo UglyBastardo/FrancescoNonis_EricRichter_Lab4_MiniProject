@@ -98,7 +98,7 @@ begin
 			
 				--In this state, the LCD waits for a new command
 				when Idle 		=>
-					done 			<= '1';
+					--done 			<= '1';
 					CSX				<= '0';			--stop ignoring wrx and data lines
 					--RESX			<= '1';			--stop resetting the ILI9341
 
@@ -188,6 +188,11 @@ begin
 	--check if a full img is over
 	process(clk)
 	begin
+		
+		if LCD_state = Idle then
+			done <= '0';
+		end if;
+		
 		if rising_edge(clk) then
 			if img_read = '1' then
 				done <= '1';
