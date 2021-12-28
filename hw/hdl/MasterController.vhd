@@ -54,7 +54,7 @@ end MasterController;
 architecture behavior of MasterController is
 
 	--define constants for the DMA
-	constant burstcount_constant :	std_logic_vector(4 downto 0) := "10011"; --0 to 19 is 20 iterations
+	constant burstcount_constant:	std_logic_vector(4 downto 0) := "10011"; --0 to 19 is 20 iterations
 	constant address_increment	 : std_logic_vector(6 downto 0) := "1010000"; --80
 
 	constant nb_rows_of_pixels  :	std_logic_vector(7 downto 0) := "11101111"; --0 to 239 is 240 iterations
@@ -73,12 +73,13 @@ architecture behavior of MasterController is
 	signal DMA_state						:	DMA_states_type;
 	
 	--Define variable signals and counters
-	signal current_memory_address		:	std_logic_vector(31 downto 0);
+	signal current_memory_address		:  std_logic_vector(31 downto 0);
 	signal row_counter					:  std_logic_vector(7 downto 0);
 	signal burst_iter					:  std_logic_vector(4 downto 0);
-	signal burst_counter				:	std_logic_vector(2 downto 0);
+	signal burst_counter				:  std_logic_vector(2 downto 0);
 	signal new_image					:  std_logic;
 	signal AM_rq_ready					:  std_logic;
+	signal reading						:  std_logic;
 
 begin
 
@@ -88,12 +89,13 @@ begin
 		if nReset = '0' then			
 			--reset signals
 			--DMA_state			 		<= Idle;
-			row_counter					<=	(others => '0');
+			current_memory_address 		<= (others => '0');
+			row_counter					<= (others => '0');
 			burst_iter 					<= (others => '0');
 			burst_counter				<= (others => '0');
 			new_image					<= '1';
-			current_memory_address 	<= (others => '0');
 			AM_rq_ready					<= '0';
+			reading 					<= '0';
 
 			
 			--reset outputs
@@ -108,9 +110,12 @@ begin
 			--State machine goes from Idle, to Waiting for the FIFO to the ready for data, to requesting and 
 			--waiting for data from the avalon bus to actually reading that data to the FIFO
 			case DMA_state is
-				when Idle 			=>			--In Idle state, the DMA does nothing but wait for the start trigger from the LCD
-					img_read		<= '0'; --reinit img_read for new reading of image
-					if start_read = '1' then --if the start_read command was set, start reading a picture from memory and do not stop until the picture is read or a reset is issued
+				when Idle 			=>					--In Idle state, the DMA does nothing but wait for the start trigger from the LCD
+					write_FIFO <= '0';
+					img_read <= '0';
+					if start_read = '1' then
+						reading			<= '1'; --reinit img_read for new reading of image
+					elsif reading = '1' then 	--if the start_read command was set, start reading a picture from memory and do not stop until the picture is read or a reset is issued
 						DMA_state 		<= WaitFIFO;
 					end if;
 					
@@ -131,13 +136,12 @@ begin
 						else 
 							current_memory_address 	<= current_memory_address + address_increment;
 							AM_Address					<= current_memory_address + address_increment;
-							burst_counter				<= burst_counter + 1;
 						end if;
 						
 						--go to next state
 						DMA_state 			<= ReadRqAM;
 						AM_read 			<= '1';
-						burstcount  		<= burstcount_constant + "1";
+						burstcount  		<= burstcount_constant + 1;
 					end if;
 				
 				when ReadRqAM		=>			--In this state, the DMA waits for the AM bus to be ready to send Data
@@ -171,6 +175,7 @@ begin
 									DMA_state 		<= Idle;
 									new_image 		<= '1';
 									img_read		<= '1';
+									reading			<= '0';
 								else --just go back to waiting on the FIFO to be ready
 									DMA_state	 	<= WaitFIFO;
 								end if;	--img finished
@@ -185,7 +190,8 @@ begin
 								DMA_state	 	<= WaitFIFO;
 
 							end if; -- row finished
-														
+							
+							burst_counter <= burst_counter + 1;
 						end if; --burst finished
 						burst_iter		<= burst_iter + 1;
 						

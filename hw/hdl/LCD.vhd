@@ -14,6 +14,7 @@ port(
 	
 	-- External interface (ILI9341).
 	CSX				: 	out std_logic;
+	--RESX			: 	out std_logic;
 	DCX 			: 	out std_logic;
 	WRX 			: 	out std_logic;
 	RDX 			: 	out std_logic;
@@ -82,6 +83,7 @@ begin
 
 			--reset outputs
 			CSX					<= '1';
+			--RESX				<= '0';
 			DCX 				<= '1';
 			WRX 				<= '1';
 			RDX 				<= '0';
@@ -98,6 +100,7 @@ begin
 				when Idle 		=>
 					done 			<= '1';
 					CSX				<= '0';			--stop ignoring wrx and data lines
+					--RESX			<= '1';			--stop resetting the ILI9341
 
 					if ready = '0' then
 					wait_LCD 		<= '0';			--enable new read from avalon bus
@@ -121,6 +124,9 @@ begin
 					if current_data(16) = '0' then 	--configure cmd transmission
 						DCX			<= '0';			--send command adress
 						data		<= x"0000" + current_data(7 downto 0);
+						if current_data = write_mem_cont_cmd then
+							start_read	<= '1';					--enable DMA read from avalon memory
+						end if;
 					else 
 						DCX			<= '1';			--send command Data
 						data		<= cmd_data(15 downto 0);
@@ -131,11 +137,11 @@ begin
 				--In this state, the data is simply put on the lines during correct timings
 				--Also, if the command is to send pixels, then this state sets the machine to that state (FIFO then back etc...)
 				when SendData 		=>
+					start_read 			<= '0';
 					if wait_twrl = "00" then
 						WRX				<= '1';						
 						--if the cmd is to write pixels
 						if current_data = write_mem_cont_cmd then
-							start_read	<= '1';					--enable DMA read from avalon memory
 							lcd_state	<= FetchPixelFromFIFO;	--to sending pictures instead of configuration data
 						else 
 							lcd_state 	<= Idle;				--just wait for next avalon info
