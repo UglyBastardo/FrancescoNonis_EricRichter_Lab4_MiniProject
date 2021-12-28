@@ -189,11 +189,13 @@ begin
 	process(clk)
 	begin
 		
-		if LCD_state = Idle then
-			done <= '0';
-		end if;
+		
 		
 		if rising_edge(clk) then
+			if LCD_state = Idle then
+				done <= '0';
+			end if;
+			
 			if img_read = '1' then
 				done <= '1';
 			end if;
