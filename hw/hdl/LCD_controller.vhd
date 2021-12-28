@@ -31,7 +31,9 @@ entity LCD_controller is
 		signal DCX 			: 	out std_logic;
 		signal WRX 			: 	out std_logic;
 		signal RDX 			: 	out std_logic;
-		signal data			:	out std_logic_vector(15 downto 0)
+		signal data			:	out std_logic_vector(15 downto 0);
+		
+		signal LCD_ON		: out std_logic
 	);
 end entity LCD_controller;
 
@@ -144,7 +146,8 @@ begin
 			Cmd_Data 		=> cmd_data,
 			LCD_wait  		=> wait_LCD,
 			
-			RESX	=>	RESX);
+			RESX	=>	RESX,
+			LCD_ON	=> LCD_ON);
 			
 	
 	FIFO2: entity work.FIFO2(SYN) port map(

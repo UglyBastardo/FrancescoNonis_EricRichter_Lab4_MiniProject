@@ -28,7 +28,8 @@ entity Avalon_slave is
 			LCD_wait		: in std_logic;
 			
 			--RESX pin 
-			RESX			: out std_logic
+			RESX			: out std_logic;
+			LCD_ON			: out std_logic
 	);
 
 end Avalon_slave;
@@ -78,6 +79,7 @@ begin
 			Img_read_reg   <= (others => '0');
 			RESX_reg	   <= x"00000001";
 			RESX		<= '1';
+			LCD_ON		<= '1';
 			
 		
 		

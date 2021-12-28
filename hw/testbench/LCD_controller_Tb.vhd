@@ -44,6 +44,7 @@ architecture test of tb_LCD_controller is
 	
 	--count number of burst done
 	signal NBR_BURST		: integer;
+	signal LCD_ON			: std_logic;
 	
 begin
 	
@@ -73,7 +74,8 @@ begin
 		DCX				=> DCX, 			 
 		WRX				=> WRX, 			
 		RDX				=> RDX, 			
-		data			=> data);
+		data			=> data,
+		LCD_ON			=> LCD_ON);
 	
 	--synchronus clock signal generation 
 	clk_generation: process
