@@ -1,0 +1,23 @@
+
+State Machine - |DE0_Nano_SoC_TRDB_D5M_LT24_top_level|soc_system:u0|LCD_controller:lcd_controller_0|LCD:LCD_component|lcd_state
+Name lcd_state.FetchPixelFromFIFO lcd_state.SendData lcd_state.InterpretData lcd_state.Idle 
+lcd_state.Idle 0 0 0 0 
+lcd_state.InterpretData 0 0 1 1 
+lcd_state.SendData 0 1 0 1 
+lcd_state.FetchPixelFromFIFO 1 0 0 1 
+
+State Machine - |DE0_Nano_SoC_TRDB_D5M_LT24_top_level|soc_system:u0|LCD_controller:lcd_controller_0|MasterController:DMA|DMA_state
+Name DMA_state.ReadData DMA_state.ReadRqAM DMA_state.WaitFIFO DMA_state.Idle 
+DMA_state.Idle 0 0 0 0 
+DMA_state.WaitFIFO 0 0 1 1 
+DMA_state.ReadRqAM 0 1 0 1 
+DMA_state.ReadData 1 0 0 1 
+
+State Machine - |DE0_Nano_SoC_TRDB_D5M_LT24_top_level|soc_system:u0|soc_system_nios2_gen2_0:nios2_gen2_0|soc_system_nios2_gen2_0_cpu:cpu|soc_system_nios2_gen2_0_cpu_nios2_oci:the_soc_system_nios2_gen2_0_cpu_nios2_oci|soc_system_nios2_gen2_0_cpu_debug_slave_wrapper:the_soc_system_nios2_gen2_0_cpu_debug_slave_wrapper|soc_system_nios2_gen2_0_cpu_debug_slave_tck:the_soc_system_nios2_gen2_0_cpu_debug_slave_tck|DRsize
+Name DRsize.101 DRsize.100 DRsize.011 DRsize.010 DRsize.001 DRsize.000 
+DRsize.000 0 0 0 0 0 0 
+DRsize.001 0 0 0 0 1 1 
+DRsize.010 0 0 0 1 0 1 
+DRsize.011 0 0 1 0 0 1 
+DRsize.100 0 1 0 0 0 1 
+DRsize.101 1 0 0 0 0 1 
