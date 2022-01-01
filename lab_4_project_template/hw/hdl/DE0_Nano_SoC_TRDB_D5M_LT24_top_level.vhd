@@ -287,7 +287,7 @@ begin
 	--assigning unused signals
 	process(FPGA_CLK1_50)
 	begin
-		GPIO_0_LT24_ADC_CS_N	<= '1';
+		 GPIO_0_LT24_ADC_CS_N	<= '1';
 		 GPIO_0_LT24_ADC_DCLK	<= '0';
 		 GPIO_0_LT24_ADC_DIN	<= '0';
 	end process;

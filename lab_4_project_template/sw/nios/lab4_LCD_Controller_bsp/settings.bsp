@@ -2,8 +2,8 @@
 <sch:Settings xmlns:sch="http://www.altera.com/embeddedsw/bsp/schema">
         <BspType>hal</BspType>
         <BspVersion>default</BspVersion>
-        <BspGeneratedTimeStamp>Dec 29, 2021 1:52:28 PM</BspGeneratedTimeStamp>
-        <BspGeneratedUnixTimeStamp>1640782348186</BspGeneratedUnixTimeStamp>
+        <BspGeneratedTimeStamp>1 janv. 2022 21:42:15</BspGeneratedTimeStamp>
+        <BspGeneratedUnixTimeStamp>1641069735107</BspGeneratedUnixTimeStamp>
         <BspGeneratedLocation>C:\Users\franc\Desktop\epfl\MA1\embeded_system\lab4\lab4_correct_template\lab_4_project_template\lab_4_project_template\sw\nios\lab4_LCD_Controller_bsp</BspGeneratedLocation>
         <BspSettingsFile>settings.bsp</BspSettingsFile>
         <SopcDesignFile>C:\Users\franc\Desktop\epfl\MA1\embeded_system\lab4\lab4_correct_template\lab_4_project_template\lab_4_project_template\hw\quartus\soc_system.sopcinfo</SopcDesignFile>
@@ -875,6 +875,18 @@
                 <Group>none</Group>
         </Setting>
         <Setting>
+                <SettingName>altera_hostfs.hostfs_name</SettingName>
+                <Identifier>ALTERA_HOSTFS_NAME</Identifier>
+                <Type>QuotedString</Type>
+                <Value>/mnt/host</Value>
+                <DefaultValue>/mnt/host</DefaultValue>
+                <DestinationFile>system_h_define</DestinationFile>
+                <Description>Mount point</Description>
+                <Restrictions>none</Restrictions>
+                <Enabled>false</Enabled>
+                <Group xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+        </Setting>
+        <Setting>
                 <SettingName>altera_avalon_jtag_uart_driver.enable_small_driver</SettingName>
                 <Identifier>ALTERA_AVALON_JTAG_UART_SMALL</Identifier>
                 <Type>BooleanDefineOnly</Type>
@@ -894,18 +906,6 @@
                 <DefaultValue>false</DefaultValue>
                 <DestinationFile>public_mk_define</DestinationFile>
                 <Description>Enable JTAG UART driver to recover when host is inactive causing buffer to full without returning error. Printf will not fail with this recovery.</Description>
-                <Restrictions>none</Restrictions>
-                <Enabled>false</Enabled>
-                <Group xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
-        </Setting>
-        <Setting>
-                <SettingName>altera_hostfs.hostfs_name</SettingName>
-                <Identifier>ALTERA_HOSTFS_NAME</Identifier>
-                <Type>QuotedString</Type>
-                <Value>/mnt/host</Value>
-                <DefaultValue>/mnt/host</DefaultValue>
-                <DestinationFile>system_h_define</DestinationFile>
-                <Description>Mount point</Description>
                 <Restrictions>none</Restrictions>
                 <Enabled>false</Enabled>
                 <Group xsi:nil="true" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>

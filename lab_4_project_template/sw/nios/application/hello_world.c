@@ -31,16 +31,26 @@
 #define NOP_COMMAND		0x00000000
 
 //function to load an image on the SD card
-void write_image();
-
+void write_image_1();
+void write_image_2();
 int main()
 {
 	//write an image to memory
-	write_image();
+	write_image_1();
 	//initialize the LCD
 	LCD_init();
 
 	//tells the LCD to display the written image
+	IOWR_32DIRECT(LCD_CONTROLLER_0_BASE, ADDRESS_REG, HPS_0_BRIDGES_BASE);
+	IOWR_32DIRECT(LCD_CONTROLLER_0_BASE, COMMAND_REG, DISPLAY_COMMAND);
+	alt_u32 img_read = IORD_32DIRECT(LCD_CONTROLLER_0_BASE, IMAGE_READ_REG);
+
+	while(img_read != 0x00000001) {
+		img_read = IORD_32DIRECT(LCD_CONTROLLER_0_BASE, IMAGE_READ_REG);
+	}
+
+	IOWR_32DIRECT(LCD_CONTROLLER_0_BASE, IMAGE_READ_REG, 0x00000000);
+	write_image_2();
 	IOWR_32DIRECT(LCD_CONTROLLER_0_BASE, ADDRESS_REG, HPS_0_BRIDGES_BASE);
 	IOWR_32DIRECT(LCD_CONTROLLER_0_BASE, COMMAND_REG, DISPLAY_COMMAND);
 
@@ -59,11 +69,40 @@ int main()
 
 
 
-void write_image() {
+void write_image_1() {
 	/*	generates and loads an image to the SDRAM */
-	for (alt_u32 i = 0; i < NBR_PIXEL; ++i)
+	for (alt_u32 i = 0; i < NBR_PIXEL/4; ++i)
 	{
-		IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, RED);
+		IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, GREEN);
 	}
+
+	for (alt_u32 i = NBR_PIXEL/4; i < NBR_PIXEL/2; ++i) {
+		IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, BLUE);
+	}
+	for (alt_u32 i = NBR_PIXEL/2; i < 3*NBR_PIXEL/4; ++i) {
+			IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, RED);
+	}
+	for (alt_u32 i = 3*NBR_PIXEL/4; i < NBR_PIXEL; ++i) {
+				IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, BLUE|GREEN);
+	}
+
 }
 
+void write_image_2() {
+	/*	generates and loads an image to the SDRAM */
+	for (alt_u32 i = 0; i < NBR_PIXEL/4; ++i)
+	{
+		IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, GREEN);
+	}
+
+	for (alt_u32 i = NBR_PIXEL/4; i < NBR_PIXEL/2; ++i) {
+		IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, BLUE);
+	}
+	for (alt_u32 i = NBR_PIXEL/2; i < 3*NBR_PIXEL/4; ++i) {
+			IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, GREEN);
+	}
+	for (alt_u32 i = 3*NBR_PIXEL/4; i < NBR_PIXEL; ++i) {
+				IOWR_16DIRECT(HPS_0_BRIDGES_BASE, 2*i, BLUE);
+	}
+
+}
